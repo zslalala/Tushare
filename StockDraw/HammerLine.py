@@ -23,6 +23,8 @@ def getFormatDFDOWN(df,volatility,SY_length,times):
     df2 = df2[df2.high < (1+SY_length) * df2.open]
     # 要求三:下影线要超过两倍的箱体
     df2 = df2[(df2.close - df2.low) > times * (df2.open - df2.close)]
+    print('---------------df2---------------')
+    print(df2)
 
     newdate = []
     for date in df2.trade_date:
@@ -45,6 +47,8 @@ def getFormatDFUP(df,volatility,SY_length,times):
     df1 = df1[df1.high < (1+SY_length) * df1.close]
     #要求三:下影线要超过两倍的箱体
     df1 = df1[(df1.open - df1.low) > times * (df1.close - df1.open) ]
+    print('-----------------df1---------------------')
+    print(df1)
 
     newdate = []
     for date in df1.trade_date:
@@ -102,7 +106,7 @@ if __name__ == "__main__":
     pro = ts.pro_api(token)
 
     #输入参数，后续提到配置文件
-    ts_code = '000560'              #股票代码
+    ts_code = '603993'              #股票代码
     start_date = '20170101'         #开始查询日期
     end_date = '20200110'           #结束查询日期
 
@@ -134,15 +138,11 @@ if __name__ == "__main__":
     ax.xaxis_date()
 
     #上涨锤子线/上吊线
-    df1 = getFormatDFUP(df,0.004,0.003,2.5)
+    df1 = getFormatDFUP(df,0.005,0.003,2)
     drawPoint(df1, df1.shape[0], 'x', 'blue', 100)
-    print("-------------df1--------------")
-    print(df1)
 
     # 下跌锤子线/上吊线
-    df2 = getFormatDFDOWN(df,0.004,0.003,2.5)
+    df2 = getFormatDFDOWN(df,0.005,0.003,2)
     drawPoint(df2,df2.shape[0],'x','black',100)
-    print("-------------df2--------------")
-    print(df2)
 
     plt.show()
