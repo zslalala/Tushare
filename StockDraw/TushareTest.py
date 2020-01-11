@@ -6,6 +6,55 @@ import pandas as pd
 import datetime
 import os
 
+#对目标点位进行标注
+def drawPoint(df,length,marker,color,size):
+    for i in range(length):
+        plt.scatter(df.iloc[i].trade_date, df.iloc[i].low, marker=marker, color=color, s=size, label='First')
+
+#df:原始数据的dataframe
+#波动率:volatility
+#上影线部分:SY_length
+#下影线对箱体的倍数:times
+def getFormatDFDOWN(df,volatility,SY_length,times):
+    # 股票分析部分2
+    # 要求一:该天是下跌的，至少下跌0.3%
+    df2 = df[df.close < (1-volatility) * df.open]
+    # 要求二:上影线不能超过0.5%的开盘价
+    df2 = df2[df2.high < (1+SY_length) * df2.open]
+    # 要求三:下影线要超过两倍的箱体
+    df2 = df2[(df2.close - df2.low) > times * (df2.open - df2.close)]
+
+    newdate = []
+    for date in df2.trade_date:
+        date = (str)(date)
+        date_time = datetime.datetime.strptime(date, '%Y%m%d')
+        date = date2num(date_time)
+        newdate.append(date)
+    df2.trade_date = newdate
+    return df2
+
+#df:原始数据的dataframe
+#波动率:volatility
+#上影线部分:SY_length
+#下影线对箱体的倍数:times
+def getFormatDFUP(df,volatility,SY_length,times):
+    #股票分析部分
+    #要求一:该天是上涨的,至少上涨0.3%
+    df1 = df[df.close > (1+volatility) * df.open]
+    #要求二:上影线不能超过0.5%的收盘价
+    df1 = df1[df1.high < (1+SY_length) * df1.close]
+    #要求三:下影线要超过两倍的箱体
+    df1 = df1[(df1.open - df1.low) > times * (df1.close - df1.open) ]
+
+    newdate = []
+    for date in df1.trade_date:
+        date = (str)(date)
+        date_time = datetime.datetime.strptime(date, '%Y%m%d')
+        date = date2num(date_time)
+        newdate.append(date)
+    df1.trade_date = newdate
+    return df1
+
 #获取PATH路径和股票代码(加上了SH和SZ的)
 def getPathAndTC(ts_code):
     ts_code = (str)(ts_code)
@@ -53,8 +102,8 @@ if __name__ == "__main__":
     pro = ts.pro_api(token)
 
     #输入参数，后续提到配置文件
-    ts_code = '601211'              #股票代码
-    start_date = '20171001'         #开始查询日期
+    ts_code = '600398'              #股票代码
+    start_date = '20170101'         #开始查询日期
     end_date = '20200110'           #结束查询日期
 
     #获取股票数据存储路径和上证/深证代码
@@ -71,6 +120,7 @@ if __name__ == "__main__":
     candleDf = df.as_matrix()
     num_time = date_to_num(candleDf[:,0])
     candleDf[:,0] = num_time
+    print("num_time",num_time)
     fig, ax = plt.subplots(figsize=(20, 5))
     fig.subplots_adjust(bottom=0.1)
     mpf.candlestick_ochl(ax, candleDf, width=0.6, colorup='r', colordown='g', alpha=1.0)
@@ -80,27 +130,18 @@ if __name__ == "__main__":
     plt.title(ts_code)
     plt.xlabel('Date')
     plt.ylabel('Price')
+
     # x轴的刻度为日期
     ax.xaxis_date()
 
-    #股票分析部分
-    #要求一:该天是上涨的,至少上涨0.3%
-    df1 = df[df.close > 1.003 * df.open]
-    #要求二:上影线不能超过0.5%的收盘价
-    df1 = df1[df.high < 1.002 * df.close]
-    #要求三:下影线要超过两倍的箱体
-    df1 = df1[(df.open - df.low) > 2 * (df.close - df.open) ]
+    df1 = getFormatDFUP(df,0.003,0.003,2.5)
+    drawPoint(df1, df1.shape[0], 'x', 'blue', 100)
+    print("-------------df1--------------")
     print(df1)
 
-
-    # #上影线不能超过0.5%的收盘价
-    # df1 = df[(df['high']<1.005*df['close'])]
-    # #收盘价要大于1%的开盘价，防止收十字星
-    # df2 = df1[df1['close']>1.005 * df1['open']]
-    # #全天波动值要大于收盘开盘波动的两倍
-    # df3 = df2[((df2['high']-df2['low'])>2 * (df2['close'] - df2['open']))]
-    # print(df3.shape)
-    # print("满足这样条件的天数:",df3.shape[0]/df.shape[0]*100,"%")
-    # print(df3)
+    df2 = getFormatDFDOWN(df,0.003,0.003,2.5)
+    drawPoint(df2,df2.shape[0],'x','black',100)
+    print("-------------df2--------------")
+    print(df2)
 
     plt.show()
