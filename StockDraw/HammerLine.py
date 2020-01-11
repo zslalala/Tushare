@@ -83,7 +83,7 @@ def date_to_num(dates):
 #获取股票数据
 def getStockData(path,start_date,end_date):
     if not (os.path.exists(path)):
-        print('false')
+        print('数据库中无记录，需要从网上下载数据，故较慢，请稍候.....')
         df_origin = pro.daily(ts_code=ts_code, start_date='20170101', end_date='20200109')
         df_origin.to_csv(path,index=None)
     df_origin = pd.read_csv(path)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     pro = ts.pro_api(token)
 
     #输入参数，后续提到配置文件
-    ts_code = '600398'              #股票代码
+    ts_code = '000560'              #股票代码
     start_date = '20170101'         #开始查询日期
     end_date = '20200110'           #结束查询日期
 
@@ -120,10 +120,9 @@ if __name__ == "__main__":
     candleDf = df.as_matrix()
     num_time = date_to_num(candleDf[:,0])
     candleDf[:,0] = num_time
-    print("num_time",num_time)
     fig, ax = plt.subplots(figsize=(20, 5))
     fig.subplots_adjust(bottom=0.1)
-    mpf.candlestick_ochl(ax, candleDf, width=0.6, colorup='r', colordown='g', alpha=1.0)
+    mpf.candlestick_ochl(ax, candleDf, width=1, colorup='r', colordown='g', alpha=1.0)
     plt.grid(True)
     # 设置日期刻度旋转的角度
     plt.xticks(rotation=30)
@@ -134,12 +133,14 @@ if __name__ == "__main__":
     # x轴的刻度为日期
     ax.xaxis_date()
 
-    df1 = getFormatDFUP(df,0.003,0.003,2.5)
+    #上涨锤子线/上吊线
+    df1 = getFormatDFUP(df,0.004,0.003,2.5)
     drawPoint(df1, df1.shape[0], 'x', 'blue', 100)
     print("-------------df1--------------")
     print(df1)
 
-    df2 = getFormatDFDOWN(df,0.003,0.003,2.5)
+    # 下跌锤子线/上吊线
+    df2 = getFormatDFDOWN(df,0.004,0.003,2.5)
     drawPoint(df2,df2.shape[0],'x','black',100)
     print("-------------df2--------------")
     print(df2)
