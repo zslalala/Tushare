@@ -29,11 +29,10 @@ def getStockData(path,start_date,end_date,pro,ts_code):
     df_origin = df_origin[df_origin.trade_date > (int)(start_date)]
     df_origin = df_origin[df_origin.trade_date < (int)(end_date)]
     df_origin = df_origin.reset_index(drop=True)
-    print(df_origin)
     df = df_origin.drop(['ts_code'],axis = 1)
     return df
 
-#获取某日的后x日平均收盘价格及涨跌幅
+#获取某日的前x日平均收盘价格及涨跌幅
 def GetPriceBeforeX(data,date,x):
     target = data[data.trade_date == date]
     targetPrice = target.close.values[0]
@@ -43,11 +42,14 @@ def GetPriceBeforeX(data,date,x):
         searched = data.loc[index:]
     else:
         searched = data.loc[index:index+x]
+    print("---------searched-----------")
+    print(searched)
+    print("---------searched-----------")
     mean_price = searched.close.mean()
     Achg = (targetPrice-mean_price)/mean_price
     return mean_price,Achg
 
-#获取某日的前x日收盘平均价格及涨跌幅
+#获取某日的后x日收盘平均价格及涨跌幅
 def GetPriceAfterX(data,date,x):
     target = data[data.trade_date == date]
     targetPrice = target.close.values[0]
@@ -56,7 +58,9 @@ def GetPriceAfterX(data,date,x):
         searched = data.loc[0:index]
     else:
         searched = data.loc[index-x:index]
+    print("---------searched-----------")
     print(searched)
+    print("---------searched-----------")
     mean_price = searched.close.mean()
     Achg = (mean_price - targetPrice) / targetPrice
     return mean_price,Achg
@@ -78,3 +82,23 @@ def GetPrice(data,date):
     target = data[data.trade_date == date]
     price = target.close.values[0]
     return price
+
+#获取股票某点前x日区间的最高价和最低价及目前开盘价所位于的曲线百分比
+def GetBeforeXMaxAndMin(data,date,x):
+    target = data[data.trade_date == date]
+    targetClosePrice = target.close.values[0]
+    targetOpenPrice = target.open.values[0]
+    index = target.index.values[0]
+    maxindex = data.shape[0]
+    if(index + x > maxindex):
+        searched = data.loc[index:]
+    else:
+        searched = data.loc[index:index+x]
+    # print("---------searched-----------")
+    # print(searched)
+    # print("---------searched-----------")
+    HighMax = searched.high.max()
+    LowMin = searched.low.min()
+    Percent = (targetOpenPrice - LowMin)/(HighMax - LowMin)
+    return HighMax,LowMin,Percent
+
