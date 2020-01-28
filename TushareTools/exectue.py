@@ -32,6 +32,20 @@ def getStockData(path,start_date,end_date,pro,ts_code):
     df = df_origin.drop(['ts_code'],axis = 1)
     return df
 
+#获取某日后x日的交易信息
+def GetAfterInformationX(data,date,x):
+    target = data[data.trade_date == date]
+    targetPrice = target.close.values[0]
+    index = target.index.values[0]
+    if(index - x < 0):
+        searched = data.loc[0:index]
+    else:
+        searched = data.loc[index-x:index]
+    print("---------searched-----------")
+    print(searched)
+    print("---------searched-----------")
+    return searched
+
 #获取某日的前x日平均收盘价格及涨跌幅
 def GetPriceBeforeX(data,date,x):
     target = data[data.trade_date == date]
